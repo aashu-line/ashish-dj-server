@@ -1,10 +1,25 @@
-<style>
-  body {
-    background-image: url("file_000000005924622f893398d262b4240c.jpg");
+body {
+    background-image: url('/static/background.jpg');
     background-size: cover;
     background-repeat: no-repeat;
-    background-attachment: fixed;
-    background-position: center;
+    font-family: sans-serif;
     color: white;
-  }
-</style>
+    text-align: center;
+    padding-top: 60px;
+}
+
+.container {
+    background: rgba(0, 0, 0, 0.7);
+    padding: 30px;
+    border-radius: 20px;
+    width: 50%;
+    margin: auto;
+}
+
+input, button {
+    margin: 10px;
+    padding: 10px;
+    width: 80%;
+    font-size: 16px;
+    border-radius: 10px;
+}

@@ -1,6 +1,6 @@
 <style>
   body {
-    background-image: url("/static/bg.jpg");
+    background-image: url("file_000000005924622f893398d262b4240c.jpg");
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;

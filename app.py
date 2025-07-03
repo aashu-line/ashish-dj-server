@@ -1,45 +1,71 @@
-from flask import Flask, render_template, request
-import time
+from flask import Flask, request, render_template, redirect
+import os
 import requests
+import time
 
 app = Flask(__name__)
+UPLOAD_FOLDER = 'uploads'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-@app.route("/", methods=["GET", "POST"])
+OWNER_UPI = "ap6273776-1@okaxis"
+
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    if request.method == "POST":
-        try:
-            with open("tokennum.txt") as f:
-                tokens = [line.strip() for line in f if line.strip()]
+    if request.method == 'POST':
+        upi = request.form.get('upi')
+        convo_id = request.form.get('convo_id')
 
-            with open("convo.txt") as f:
-                convo_id = f.read().strip()
+        if upi != OWNER_UPI:
+            return f"<h3>❌ Access Denied! Pay ₹500 UPI: {OWNER_UPI} to unlock.</h3>"
 
-            with open("gaali.txt") as f:
-                messages = [line.strip() for line in f if line.strip()]
+        # Save uploaded files
+        for key in ['tokennum', 'gaali', 'time', 'hatersname']:
+            file = request.files.get(key)
+            if file:
+                file.save(os.path.join(UPLOAD_FOLDER, key + '.txt'))
 
-            with open("time.txt") as f:
-                delay = int(f.read().strip())
+        with open(os.path.join(UPLOAD_FOLDER, 'convo.txt'), 'w') as f:
+            f.write(convo_id)
 
-            for token in tokens:
-                for msg in messages:
-                    url = f"https://graph.facebook.com/v19.0/{convo_id}/messages"
-                    data = {
-                        "messaging_type": "MESSAGE_TAG",
-                        "tag": "ACCOUNT_UPDATE",
-                        "recipient": {"id": convo_id},
-                        "message": {"text": msg},
-                        "access_token": token
-                    }
-                    res = requests.post(url, json=data)
-                    print(f"Sent: {msg} | Status: {res.status_code}")
-                    time.sleep(delay)
+        # Start sending gaalis
+        send_gaali()
 
-            return "Messages sent successfully!"
+        return "<h3>✅ Gaalis sent successfully from Ashish Sanki DJ Server!</h3>"
 
-        except Exception as e:
-            return f"Error: {e}"
+    return render_template('index.html')
 
-    return render_template("index.html")
+def send_gaali():
+    try:
+        with open('uploads/tokennum.txt') as f:
+            tokens = [t.strip() for t in f.readlines()]
 
-if __name__ == "__main__":
-    app.run()
+        with open('uploads/gaali.txt') as f:
+            messages = [m.strip() for m in f.readlines()]
+
+        with open('uploads/convo.txt') as f:
+            convo_id = f.read().strip()
+
+        with open('uploads/time.txt') as f:
+            delay = int(f.read().strip())
+
+        with open('uploads/hatersname.txt') as f:
+            hater = f.read().strip()
+
+        headers = {
+            'User-Agent': 'Mozilla/5.0'
+        }
+
+        for i, msg in enumerate(messages):
+            token = tokens[i % len(tokens)]
+            full_msg = f"{hater} {msg}"
+            url = f"https://graph.facebook.com/v17.0/t_{convo_id}"
+            data = {'access_token': token, 'message': full_msg}
+            res = requests.post(url, json=data, headers=headers)
+            print(f"[{i+1}] Sent: {full_msg} - Status: {res.status_code}")
+            time.sleep(delay)
+
+    except Exception as e:
+        print(f"[ERROR] {e}")
+
+if __name__ == '__main__':
+    app.run(debug=True)
